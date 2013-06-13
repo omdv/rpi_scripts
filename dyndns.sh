@@ -37,7 +37,7 @@ TMPIP=/tmp/tmpIP                      # Temp IP storage file
 LOGPATH=/home/pi/log/changeip.log     # Log file
 TEMP=/tmp/temp                        # Temp storage file
 CIPUSER=Torrinos                      # ChangeIP.com Username
-CIPPASS=R9yryfe0e8EZM5TM              # ChangeIP.com Password
+CIPPASS=pass_here              # ChangeIP.com Password
 CIPSET=1                              # ChangeIP.com recordset
 LOGLEVEL=0                            # 0=off,1=normal,2=verbose
 LOGMAX=500                            # Max log lines, 0=unlimited
