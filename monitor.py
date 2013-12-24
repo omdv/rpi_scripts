@@ -1,13 +1,12 @@
-# monitoring sensor temperatures and adding these to the database
-# the database is shown on the web
+#!/usr/bin/python
 
-import subprocess, os, re, sqlite3
+import re, sqlite3, subprocess
 
 def get_data():
 
-    try:
+#    try:
         result=[]
-        hdd = subprocess.check_output(["sudo df | grep rootfs | awk '{print $2,$3,$4,$5}'"], shell=True)
+        hdd = subprocess.check_output(["df | grep rootfs | awk '{print $2,$3,$4,$5}'"], shell=True)
         hdd = hdd.split()
         hdd_free = int(hdd[2]) / 1024
         hdd_used = int(hdd[1]) / 1024
@@ -19,7 +18,7 @@ def get_data():
 #        cpu = cpu.split()[1]
 #        result.append(cpu)
 
-        mem = subprocess.check_output(["sudo cat /proc/meminfo | grep Mem | awk '{print $2}'"], shell=True)
+        mem = subprocess.check_output(["cat /proc/meminfo | grep Mem | awk '{print $2}'"], shell=True)
         mem = mem.split()
         mem_total = int(mem[0]) / 1024
         mem_free = int(mem[1]) / 1024
@@ -27,9 +26,11 @@ def get_data():
         result.append(mem_used)
         result.append(mem_free)
 
-        cpu_temp = subprocess.check_output(["sudo /opt/vc/bin/vcgencmd measure_temp"], shell=True)
-        m=re.findall('^.*\=(.{4}).*$',cpu_temp)
-        result.append(float(m[0]))
+        #cpu_temp = subprocess.check_output(["/opt/vc/bin/vcgencmd measure_temp"], shell=True)
+        cpu_temp = float(subprocess.check_output(["cat /sys/class/thermal/thermal_zone0/temp"], shell=True))
+        #m=re.findall('^.*\=(.{4}).*$',cpu_temp)
+        cpu_temp = cpu_temp/1000
+        result.append(cpu_temp)
 
         with open('/proc/uptime', 'r') as f:
             uptime = round(float(f.readline().split()[0])/60/60,2)
@@ -37,9 +38,9 @@ def get_data():
 
         return result
 
-    except:
-        print "Error"
-        return None
+#    except:
+ #       print "Error"
+ #       return None
 
 def log_data(valstr):
 
@@ -53,5 +54,5 @@ def log_data(valstr):
     conn.commit()
     conn.close()
 
-#print get_data()
+print get_data()
 log_data(get_data())
