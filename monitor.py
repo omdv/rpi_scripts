@@ -1,10 +1,10 @@
 #!/usr/bin/python
 
-import re, sqlite3, subprocess
+import csv, re, sqlite3, subprocess
 
 def get_data():
 
-#    try:
+    try:
         result=[]
         hdd = subprocess.check_output(["df | grep rootfs | awk '{print $2,$3,$4,$5}'"], shell=True)
         hdd = hdd.split()
@@ -14,10 +14,6 @@ def get_data():
         result.append(hdd_free)
         result.append(hdd_used)
 
-#        cpu = subprocess.check_output(["vmstat | awk '{print $13}'"], shell=True)
-#        cpu = cpu.split()[1]
-#        result.append(cpu)
-
         mem = subprocess.check_output(["cat /proc/meminfo | grep Mem | awk '{print $2}'"], shell=True)
         mem = mem.split()
         mem_total = int(mem[0]) / 1024
@@ -26,9 +22,7 @@ def get_data():
         result.append(mem_used)
         result.append(mem_free)
 
-        #cpu_temp = subprocess.check_output(["/opt/vc/bin/vcgencmd measure_temp"], shell=True)
         cpu_temp = float(subprocess.check_output(["cat /sys/class/thermal/thermal_zone0/temp"], shell=True))
-        #m=re.findall('^.*\=(.{4}).*$',cpu_temp)
         cpu_temp = cpu_temp/1000
         result.append(cpu_temp)
 
@@ -38,9 +32,8 @@ def get_data():
 
         return result
 
-#    except:
- #       print "Error"
- #       return None
+    except:
+        return None
 
 def log_data(valstr):
 
@@ -54,5 +47,30 @@ def log_data(valstr):
     conn.commit()
     conn.close()
 
-print get_data()
+
+def web_data():
+    dbname='/var/www/monitor.db'
+    finame='/var/www/monitor.csv'
+
+    conn=sqlite3.connect(dbname)
+    curs=conn.cursor()
+
+    #SELECT the scope of the plot
+    curs.execute("SELECT * from RT_data")
+    #curs.execute("SELECT timestamp, hdd_free, hdd_used, cpu_temp from RT_data")
+
+    data=curs.fetchall()
+    #print data         #for debugging
+
+    conn.close()
+
+    with open(finame,'wb') as csvfile:
+        mywriter = csv.writer(csvfile, dialect='excel-tab')
+        mywriter.writerow(['date','hdd_free','hdd_used','mem_used','mem_free','temp','uptime'])
+        for value in data:
+            mywriter.writerow(value)
+
+
+#MAIN PART
 log_data(get_data())
+web_data()
